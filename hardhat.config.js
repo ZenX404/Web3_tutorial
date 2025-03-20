@@ -7,9 +7,11 @@ require("@nomicfoundation/hardhat-toolbox");
 // env-enc加密后的信息存储在了.env-enc文件中
 require("@chainlink/env-enc").config();
 
+
 // 引入.env中的常量
 const SEPOLIA_URL = process.env.SEPOLIA_URL;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -28,6 +30,9 @@ module.exports = {
       // 合约最终要部署到的地址是另外全新的地址，会往区块点中最新的区块上追加数据块来部署合约
       accounts: [PRIVATE_KEY]
     }
-
+  },
+  // 这个是hardhat-verify通过js或者命令来调用etherscan实现验证合约时，需要设置etherscan的api token
+  etherscan: {
+    apiKey: ETHERSCAN_API_KEY
   }
 };
