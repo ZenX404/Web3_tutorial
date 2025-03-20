@@ -1,5 +1,7 @@
 node_modules
+# 一般大家习惯用.env文件存放一些环境变量等比较敏感的数据（比如一些私钥、token等），这样就不会被上传到github上了
 .env
+.env.enc
 
 # Hardhat files
 /cache
