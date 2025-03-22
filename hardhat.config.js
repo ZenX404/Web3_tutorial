@@ -11,6 +11,7 @@ require("@chainlink/env-enc").config();
 // 引入.env中的常量
 const SEPOLIA_URL = process.env.SEPOLIA_URL;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const PRIVATE_KEY_1 = process.env.PRIVATE_KEY_1;
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 
 /** @type import('hardhat/config').HardhatUserConfig */
@@ -28,7 +29,7 @@ module.exports = {
       // accounts用来设置要发送合约部署请求的地址所对应的私钥。数组中写的是地址对应的私钥，这个信息很敏感，不能公布出去！
       // 注意，下面设置的私钥对应的地址并不是合约最终要部署到的地址，而是用来发送合约部署请求的地址
       // 合约最终要部署到的地址是另外全新的地址，会往区块点中最新的区块上追加数据块来部署合约
-      accounts: [PRIVATE_KEY],
+      accounts: [PRIVATE_KEY, PRIVATE_KEY_1],
       chainId: 11155111 // 添加chainId，这个是一条区块链的唯一标识，sepolia测试网络的chainId是11155111
     }
   },
