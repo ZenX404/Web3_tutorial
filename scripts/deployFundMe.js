@@ -43,9 +43,38 @@ async function main() {
 
     // 打印合约地址
     console.log("FundMe deployed to:", await fundMe.target);
+
+    // verify fundme
+    /**
+     * 合约部署之后，被etherscan收录可能会有延迟
+     * 虽然上面在执行部署合约fundMe.waitForDeployment()时使用了await，会等待部署成功后再向后执行
+     * 但是合约成功部署，并不意味着它已经被etherscan收录
+     * 如果此时合约还没有被收录，我们去验证合约就可能会报错
+     * 所以这里我们要等待几个区块（等待链上已经创建了几个区块后再向后执行），然后再去执行验证合约
+     */
+    // 判断当前合约部署到的网络是否是sepolia测试网络（通过获取合约部署到的公链的chainId判断）,如果是将合约部署到测试网络上，那么就需要验证合约
+    // 如果只是将合约部署到本地网络，就没有必要验证合约了
+    // 并且还要保证存在etherscan的api key，否则也无法调用合约验证接口
+    if (hre.network.config.chainId === 11155111 && process.env.ETHERSCAN_API_KEY) {
+        console.log("Waiting for 5 confirmations...");
+        // 等待5个区块
+        // fundMe.deploymentTransaction(): 获取合约部署的交易
+        await fundMe.deploymentTransaction().wait(5);
+        verifyFundMe(fundMe.target, [10]);
+    } else {
+        console.log("verification skipping ...");
+    }
 }
 
-
+// 验证合约
+async function verifyFundMe(fundmeAddr, args) {
+    // 除了使用命令行来验证合约，hardhat还支持通过js来验证合约
+    // hre变量就是headhat的运行时环境，通过这个可以实现在js中调用命令行里的命令，进而实现验证合约的效果
+    await hre.run("verify:verify", {
+        address: fundmeAddr, // 要验证的合约地址
+        constructorArguments: args // 要验证的合约的构造函数入参，注意这里要传入一个数组
+      });
+}
 // 执行合约部署函数 
 /**
  * js中函数可以作为一个变量，如果我们这里只写main，表示的是main函数这个对象本身
