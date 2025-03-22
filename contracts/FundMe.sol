@@ -19,8 +19,8 @@ contract FundMe {
     // 用internal修饰，表明只有当前合约内部的函数才能调用这个变量
     AggregatorV3Interface internal dataFeed;
 
-    // 设置最小投资金额，10**18表示10的18次方，1*10^18 wei = 1 ETH
-    uint256 constant MINIMUM_VALUE = 100 * 10 ** 18;  // 设置为最少投资100usd
+    // 设置最小投资金额，solidity中10**18表示10的18次方，1*10^18 wei = 1 ETH
+    uint256 constant MINIMUM_VALUE = 1 * 10 ** 18;  // 设置为最少投资1usd
 
     // 设置众筹合约的目标值
     // constant修饰后就会变成常量，该值就无法被修改了。常量一般用大写字母命名

@@ -25,7 +25,7 @@ const { ethers } = require("hardhat");
 // 只有异步函数才能使用await关键字
 async function main() {
     // create factory  创建合约工厂
-    // 通过ethers.js这个依赖，来创建FundMe合约工厂
+    // 通过ethers.js这个依赖，来创建FundMe合约工厂。传入的就是我们自己写的FundMe.sol合约的名称
     // 而且这里要注意所有需要创建变量的地方，都需要使用await关键字，
     // 因为ethers.getContractFactory是一个异步函数，创建合约工厂可能需要比较长的时间，
     // 如果不使用await关键字，有可能前面合约工厂还没有创建完成，就开始执行后面的代码，然后是用未完成创建的合约工厂变量就会报错
@@ -34,10 +34,10 @@ async function main() {
      */
     const fundMeFactory = await ethers.getContractFactory("FundMe");
     
-    // deploy contract from factory  通过合约工厂来部署智能合约
+    // deploy contract from factory  通过合约工厂来部署智能合约，并得到合约对象，后面就可以调用合约的函数了
     // deploy()函数只能保证把部署合约的命令发送给区块链，但是不能保证合约已经部署完成
     // deplay()函数的入参应该和FundMe.sol合约中构造函数的入参一致
-    const fundMe = await fundMeFactory.deploy(10);
+    const fundMe = await fundMeFactory.deploy(180);
     // 所以需要await等待合约在区块链上部署完成，再继续向后执行
     await fundMe.waitForDeployment();
 
@@ -60,10 +60,52 @@ async function main() {
         // 等待5个区块
         // fundMe.deploymentTransaction(): 获取合约部署的交易
         await fundMe.deploymentTransaction().wait(5);
-        verifyFundMe(fundMe.target, [10]);
+        verifyFundMe(fundMe.target, [180]);
     } else {
         console.log("verification skipping ...");
     }
+
+
+    /**
+     * 部署并验证完合约后，我们就可以通过ethers.js来调用智能合约中的函数了（用js来调用solidity）
+     */
+
+    // init 2 accounts 初始化两个账户
+    // 这里初始化两个账号，是要初始化一个数组，js中初始化数组就像下面这样写在[]中。const表示常量
+    // ethers.getSigners()用于获取hardhat.config.js中accounts数组中私钥对应的两个账号，这是ethers.js包中提供的函数
+    // 在区块链开发中，调用相应的函数前面到要加上await，因为区块链有延迟
+    const [firstAccount, secondAccount] = await ethers.getSigners();
+
+    // fund contract with first account  用第一个账号给合约打款
+    // 默认使用hardhat.config.js中accounts数组中的第一个账号，所以这里不用connect指定用哪个账号
+    // 这里fundMe.fund()函数是智能合约中的一个函数，需要传入一个对象（js中对象类型的入参需要用{}包裹），对象中需要指定value属性，value属性需要传入一个以太坊的金额（value和金额之间用:分隔），这里我们传入0.1个以太坊
+    // 这里需要使用ethers.parseEther()函数来将0.1转换为以太坊的金额，因为以太坊中没有小数，所以需要用parseEther()函数来转换
+    // 因为调用fund()函数后，虽然使用了await，但是这仅仅是等待fund()函数交易请求发送成功，并不意味着交易已经完成
+    // 所以这里需要使用fundTx.wait()函数来等待交易完成
+    const fundTx = await fundMe.fund({value: ethers.parseEther("0.001")});
+    await fundTx.wait();
+
+    // check balance of contract  打完款之后，我们就可以查看一下合约的余额是多少
+    // 查看合约地址的余额，需要使用ethers.provider.getBalance()函数，这个函数需要传入一个合约地址，然后返回一个以太坊的金额
+    const contractBalance = await ethers.provider.getBalance(fundMe.target);
+    console.log(`Contract balance: ${contractBalance}`);
+
+    // fund contract with second account 使用第二个账号打款
+    // 使用connect()函数来连接第二个账号，然后调用fund()函数
+    const fundTxWithSecondAccount = await fundMe.connect(secondAccount).fund({value: ethers.parseEther("0.001")});
+    await fundTxWithSecondAccount.wait();
+
+    // check balance of contract  再次检查合约余额
+    const contractBalanceAfterSecondAccount = await ethers.provider.getBalance(fundMe.target);
+    console.log(`Contract balance: ${contractBalanceAfterSecondAccount}`);
+
+    // check mapping fundersToAmount 查看第一个账号和第二个账号在合约的mapping中记录的金额
+    // solidity中，会默认给合约的成员变量添加一个getter函数，所以这里可以直接通过fundMe.fundersToAmount(firstAccount.address)来获取第一个账号在合约的fundersToAmount这个mapping中记录的金额
+    // 传入的是第一个账号的地址
+    const firstAccountBalanceInFundMe = await fundMe.fundersToAmount(firstAccount.address);
+    console.log(`First account balance: ${firstAccountBalanceInFundMe}`);
+    const secondAccountBalanceInFundMe = await fundMe.fundersToAmount(secondAccount.address);
+    console.log(`Second account balance: ${secondAccountBalanceInFundMe}`);
 }
 
 // 验证合约
@@ -75,6 +117,7 @@ async function verifyFundMe(fundmeAddr, args) {
         constructorArguments: args // 要验证的合约的构造函数入参，注意这里要传入一个数组
       });
 }
+
 // 执行合约部署函数 
 /**
  * js中函数可以作为一个变量，如果我们这里只写main，表示的是main函数这个对象本身
