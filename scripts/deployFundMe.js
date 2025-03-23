@@ -17,6 +17,7 @@
  */
 // 在js语法中，如果要引入一个包，就需要定义一个常量
 // 下面这个代码的意思是引入hardhat包中的ethers依赖（hardhat中有很多依赖包，我们只需要引入ethers依赖即可）
+// 引入之后，我们就可以在下面使用ethers这个对象了
 const { ethers } = require("hardhat");
 
 

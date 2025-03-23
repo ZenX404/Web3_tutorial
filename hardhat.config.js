@@ -1,11 +1,18 @@
 // 这个文件夹用于配置hardhat，比如合约要部署到哪个网络上
 
-require("@nomicfoundation/hardhat-toolbox");
+// 引入hardhat的工具箱，这样就可以使用hardhat的工具箱中的工具
+require("@nomicfoundation/hardhat-toolbox"); 
 // 引入dotenv依赖，这样就可以读取.env配置文件中设置的常量
 // require("dotenv").config();
 // 我们使用env-enc依赖加密敏感信息，读取配置文件中的常量就不需要dotenv这个依赖了，直接用env-enc依赖即可
 // env-enc加密后的信息存储在了.env-enc文件中
 require("@chainlink/env-enc").config();
+// 引入我们自己编写的task，这样才可以在hardhat中使用我们自己编写的task
+// require("./tasks/deploy-fundme");
+// require("./tasks/interact-fundme");
+// 因为我们写了index.js文件，所以这里只需要引入./task即可，因为他会默认自动找./task目录下名为index.js的文件
+// 因为我们在index.js编写了模块化导出，所以就不需要我们把每一个task文件都引入进来了
+require("./tasks");
 
 
 // 引入.env中的常量
