@@ -1,3 +1,4 @@
+// 这个是hardhat框架提供的例子合约的测试代码，用于测试Lock.sol合约的
 const {
   time,
   loadFixture,
