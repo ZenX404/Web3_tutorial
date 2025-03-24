@@ -1,3 +1,4 @@
+// 这个是hardhat框架提供的例子合约
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
