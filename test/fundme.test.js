@@ -1,6 +1,6 @@
 // 编写对fundme合约的测试代码
 // hardhat-toolbox：这个是hardhat框架提供的工具箱，用于开发智能合约的。其中已经包含了js测试框架mocha和chai了，所以不需要再单独安装了（正常使用依赖的流程是先通过npm安装依赖，然后在代码中require引入依赖）
-// 这里我们直接引入mocha和chai的依赖即可。
+// 这里我们直接引入chai依赖即可。
 
 // 引入依赖，这样在后面的代码中就可以使用ethers和assert对象
 const {ethers} = require("hardhat");
