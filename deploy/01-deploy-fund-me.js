@@ -11,7 +11,8 @@
 // }
 
 
-// 用于部署合约，利用
+// 用于部署合约，利用hardhat-deploy插件创建FundMe合约的部署脚本，以供在测试代码中复用合约部署逻辑。
+// 因为之前写的部署合约的task任务，在测试代码中不能复用，所以需要创建一个部署脚本，以供在测试代码中复用合约部署逻辑（还可以复用部署的合约，避免每一个测试用例都重复部署一遍合约）。
 /**
  * 函数的两个入参是 hardhat-deploy 提供的工具。这是两个函数对象。
  * getNamedAccounts：用于获取在 hardhat.config.js 中定义的命名账户（namedAccounts配置项）。
@@ -30,4 +31,9 @@ module.exports= async({getNamedAccounts, deployments}) => {
         log: true, // 是否在控制台打印部署过程中的日志信息
     });
 }
+
+// 为部署脚本指定标签，以便在测试代码中复用。
+// 这里指定标签为 ["all", "fundme"]，表示该部署脚本属于 "all" 标签组，并且是 "fundme" 标签组的一部分。
+// 在测试代码中，可以通过标签来选择性地运行或部署特定的合约。
+module.exports.tags = ["all", "fundme"];
 
