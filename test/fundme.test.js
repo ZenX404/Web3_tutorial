@@ -17,7 +17,7 @@ const {assert} = require("chai");
  */
 describe("test fundme contract", async function() {
     // 测试用例1：测试fundme合约的owner是否是mag.sender
-    // it()函数是chai库提供的，用于定义一个测试用例，有两个入参，第一个入参是测试用例名称，第二个入参是测试用例的测试代码函数。因为函数内使用了await，所以函数需要是async异步函数
+    // it()函数是chai库提供的，用于定义一个测试用例（每一个测试用例就是用于测试合约的某一种情况或者功能），有两个入参，第一个入参是测试用例名称，第二个入参是测试用例的测试代码函数。因为函数内使用了await，所以函数需要是async异步函数
     it("test if the owner is msg.sender", async function() {
         // 在合约开发中，js代码调用函数都要用await来等待完成后再向后执行，因为区块链上是有延迟的
 
@@ -33,5 +33,6 @@ describe("test fundme contract", async function() {
         // 注意这里要取firstAccount的address，而不是firstAccount，因为firstAccount是一个Signer类型的对象，需要取对象的address属性
         // 这里获取fundMe.owner()的值时，需要用await来等待，因为区块链有延迟。fundMe.owner()是一个异步函数（solidity自动给owner属性加的getter函数，默认都是异步的）
         assert.equal((await fundMe.owner()), firstAccount.address);
-    })
+    });
+
 })

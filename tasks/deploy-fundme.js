@@ -56,5 +56,5 @@ async function verifyFundMe(fundmeAddr, args) {
       });
 }
 
-// 导出模块
+// 导出模块   导出的概念有点类似于返回值，但是这个导出的类型更多，可以导出函数，对象，字符串，数字等
 module.exports = {};
