@@ -1,5 +1,7 @@
 // 这个文件夹用于配置hardhat，比如合约要部署到哪个网络上
 
+// 使用npm安装完依赖后，如果想在hardhat项目中使用，就需要在这个配置文件中require引入该依赖
+
 // 引入hardhat的工具箱，这样就可以使用hardhat的工具箱中的工具
 require("@nomicfoundation/hardhat-toolbox"); 
 // 引入dotenv依赖，这样就可以读取.env配置文件中设置的常量
@@ -13,7 +15,7 @@ require("@chainlink/env-enc").config();
 // 因为我们写了index.js文件，所以这里只需要引入./task即可，因为他会默认自动找./task目录下名为index.js的文件
 // 因为我们在index.js编写了模块化导出，所以就不需要我们把每一个task文件都引入进来了
 require("./tasks");
-
+require("hardhat-deploy");
 
 // 引入.env中的常量
 const SEPOLIA_URL = process.env.SEPOLIA_URL;
@@ -45,5 +47,23 @@ module.exports = {
     apiKey: {
       sepolia: ETHERSCAN_API_KEY
     }
+  },
+  /**
+   * 这是 Hardhat 的一个配置选项，通常与 hardhat-deploy 插件一起使用。
+   * 它允许您为账户分配易于识别的名称，以便在部署脚本中更方便地引用。
+   * 
+   * 通过这种方式，您可以在部署脚本中使用 firstAccount 和 secondAccount 来引用具体的账户，
+   * 而不需要直接使用账户地址或索引。这使得代码更具可读性和可维护性。
+   */
+  namedAccounts: {
+    // firstAccount和secondAccount是为账户分配易于识别的名称，以便在部署脚本中更方便地引用。
+    // 分别对应于上面配置项accounts数组中的第一个和第二个账户。
+    firstAccount: {
+      // default: 0 和 default: 1 指定了在默认网络配置中，firstAccount 和 secondAccount 分别对应于 accounts 数组中的第 0 和第 1 个账户。 
+      default: 0
+    },
+    secondAccount: {
+      default: 1
+    },
   }
 };
