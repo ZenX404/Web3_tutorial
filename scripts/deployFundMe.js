@@ -47,7 +47,7 @@ async function main() {
 
     // verify fundme
     /**
-     * 合约部署之后，被etherscan收录可能会有延迟
+     * 合约部署之后，字节码被etherscan收录可能会有延迟
      * 虽然上面在执行部署合约fundMe.waitForDeployment()时使用了await，会等待部署成功后再向后执行
      * 但是合约成功部署，并不意味着它已经被etherscan收录
      * 如果此时合约还没有被收录，我们去验证合约就可能会报错
@@ -58,7 +58,7 @@ async function main() {
     // 并且还要保证存在etherscan的api key，否则也无法调用合约验证接口
     if (hre.network.config.chainId === 11155111 && process.env.ETHERSCAN_API_KEY) {
         console.log("Waiting for 5 confirmations...");
-        // 等待5个区块
+        // 等待5个区块  避免eth浏览器未将刚刚部署的合约录入，导致api报错
         // fundMe.deploymentTransaction(): 获取合约部署的交易
         await fundMe.deploymentTransaction().wait(5);
         verifyFundMe(fundMe.target, [180]);

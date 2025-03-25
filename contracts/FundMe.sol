@@ -40,11 +40,14 @@ contract FundMe {
     bool public getFundSuccess = false;
 
     // 智能合约的构造函数
-    constructor(uint256 _lockTime) {
+    // 第一个参数是锁定期时长，第二个参数是预言机合约地址
+    // 如果我们部署到sepolia测试网络，那么这里就直接传入真实的chainlink预言机提供的sepolia合约地址
+    // 如果我们是自己本地部署测试，就传入我们在本地部署的mock合约地址
+    constructor(uint256 _lockTime, address dateFeedAddr) {
         // 在构造函数中初始化喂价对象
         // 我们这里采用sepolia testnet（sepolia测试网络），所以在初始化的时候要传入chainlink中提供的sepolia测试网络地址（在sepolia测试网络中部署的预言机地址），这样才能调用到部署在测试网络上的预言机
         // 我们要把合约部署到什么网络上，下面这个初始化就要传入对应网络的预言机部署地址
-        dataFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
+        dataFeed = AggregatorV3Interface(dateFeedAddr);
 
         // 在合约部署的时候会调用构造函数，然后就可以初始化合约所有者为当时部署合约的地址
         owner = msg.sender;
