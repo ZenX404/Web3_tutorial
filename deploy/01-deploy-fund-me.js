@@ -32,17 +32,21 @@ module.exports= async({getNamedAccounts, deployments}) => {
 
     // 定义一个变量，用于存储预言机合约地址
     let dateFeedAddr;
+    let confirmations = 0;
     // 如果当前网络环境是本地（netwaork.name是hardhat.config.js中的配置项，默认是hardhat，如果我们命令输入别的网络名称，那么这个配置项就会换成别的网络），那么就使用本地mock合约
     if (devlopmentChains.includes(network.name)) {
         // 获取在本地部署的mock合约地址
         // 只要是前面通过hardhat-deploy组件部署的合约，都会被记录下来，在后面可以直接通过deployments对象来获取已经部署的合约地址，进而复用已部署的合约对象，避免重复部署
         const mockV3Aggregator = await deployments.get("MockV3Aggregator"); // 通过合约名称来获取已经部署的mock合约对象
         dateFeedAddr = mockV3Aggregator.address;
+        // 本地环境下设置为0，才不会导致部署合约的时候一直等待
+        confirmations = 0;
     // 非本地网络
     } else {
         // networkConfig是helper-hardhat-config.js中导出的常量，是一个对象，对象的key是网络的chainId，value是该网络要引用的合约地址
         // network.config.chainId是当前网络的chainId，networkConfig[network.config.chainId]用来获取所需要预言机服务在当前网络的合约地址
         dateFeedAddr = networkConfig[network.config.chainId].ethUsdDataFeed;
+        confirmations = CONFIRMATIONS;
     }
     
     // 部署 FundMe 合约，使用 firstAccount 作为部署者，并传递构造函数的参数180
@@ -51,7 +55,9 @@ module.exports= async({getNamedAccounts, deployments}) => {
         from: firstAccount,
         args: [LOCK_TIME, dateFeedAddr], // 传入构造函数入参，第一个参数是锁定期时长，第二个参数是预言机合约地址
         log: true, // 是否在控制台打印部署过程中的日志信息
-        waitConfirmations: CONFIRMATIONS  // hardhat-deploy组件的配置项，用于设置等待的区块数,避免合约还没有部署完成就向后执行导致程序报错
+        // 需要注意。如果是在本地测试网络环境下，waitConfirmations需要设定为0，否则合约永远都不会被部署，他会一直在这里等待产生区块。
+        // 因为本地测试网络下，是不会像真正的区块链主网或者测试网一样，会时刻产生新区块的，本地网络不会有新区块，如果这个配置项设置大于0，那么就会一直等待
+        waitConfirmations: confirmations  // hardhat-deploy组件的配置项，用于设置等待的区块数,避免合约还没有部署完成就向后执行导致程序报错
     });
 
     // remove deployments directory or add --reset flag if you redeploy contract
