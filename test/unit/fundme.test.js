@@ -2,6 +2,13 @@
 // hardhat-toolbox：这个是hardhat框架提供的工具箱，用于开发智能合约的。其中已经包含了js测试框架mocha和chai了，所以不需要再单独安装了（正常使用依赖的流程是先通过npm安装依赖，然后在代码中require引入依赖）
 // 这里我们直接引入chai依赖即可。
 
+
+/**
+ * 单元测试在开发的时候是必备的，因为一个代码可能会有很多人参与开发，会进行修改
+ * 每一个功能点都配套有对应的单元测试，这样就可以让后续功能修改者在修改代码后，来测试自己修改后的功能是否正常
+ * 所以开发项目，每个功能配套单元测试用例是必须的。可以让AI帮忙写测试用例
+ */
+
 // 引入依赖，这样在后面的代码中就可以使用ethers和assert对象
 const {ethers} = require("hardhat");
 // assert对象是chai库提供的，所以要引入chai依赖
@@ -71,7 +78,7 @@ describe("test fundme contract", async function() {
 
 
     // 我们要测试比较重要的函数，判断标准就是看这个函数有没有涉及到资产的转移
-    // 所以我们要测试FundMe合约中的 fund、getFund、refund函数
+    // 所以我们要测试FundMe合约中的 fund、getFund、refund函数，这三个函数都设计到资产变动
 
     // 测试fund函数
     // unit test for fund function  对fund函数进行单元测试
@@ -120,6 +127,7 @@ describe("test fundme contract", async function() {
 
     // unit test for getFund
     // onlyOwner, windowClose, target reached
+    // getfund函数测试用例1：窗口关闭，众筹目标达到，getFund函数应该失败
     it("not onwer, window closed, target reached, getFund failed", 
         async function() {
             // make sure the target is reached   保证已经达到众筹目标金额
@@ -132,6 +140,92 @@ describe("test fundme contract", async function() {
             // 使用fundMeSecondAccount对象调用fund函数时，使用的是非合约所有者的地址（合约所有者的地址是firstAccount）
             await expect(fundMeSecondAccount.getFund())
                 .to.be.revertedWith("this function can only be called by owner");
+        }
+    );
+
+    // getfund函数测试用例2：窗口仍然开启，众筹目标达到，getFund函数应该失败
+    it("window open, target reached, getFund failed", 
+        async function() {
+            await fundMe.fund({value: ethers.parseEther("1")})
+            await expect(fundMe.getFund())
+                .to.be.revertedWith("window is not close")
+        }
+    );
+
+    // getfund函数测试用例3：窗口关闭，众筹目标未达到，getFund函数应该失败
+    it("window closed, target not reached, getFund failed",
+        async function() {
+            await fundMe.fund({value: ethers.parseEther("0.1")})
+            // make sure the window is closed
+            await helpers.time.increase(200)
+            await helpers.mine()            
+            await expect(fundMe.getFund())
+                .to.be.revertedWith("Target is not reached")
+        }
+    );
+
+    // getfund函数测试用例4：窗口关闭，众筹目标达到，getFund函数应该成功
+    it("window closed, target reached, getFund success", 
+        async function() {
+            await fundMe.fund({value: ethers.parseEther("1")});
+            // make sure the window is closed
+            await helpers.time.increase(200);
+            await helpers.mine();   
+            // 断言getFund函数会触发FundWithdrawByOwner事件，并且事件的入参是1个ETH
+            await expect(fundMe.getFund())
+                .to.emit(fundMe, "FundWithdrawByOwner") // 预期会有一个名为FundWithdrawByOwner事件
+                .withArgs(ethers.parseEther("1")) // 预期事件的入参是1个ETH
+        }
+    );
+
+    // unit test for refund
+    // windowClosed, target not reached, funder has balance
+
+    // refund函数测试用例1：窗口开启，众筹目标未达到，投资人有余额，refund函数应该失败
+    it("window open, target not reached, funder has balance", 
+        async function() {
+            await fundMe.fund({value: ethers.parseEther("0.1")})
+            await expect(fundMe.refund())
+                .to.be.revertedWith("window is not close");
+        }
+    );
+
+    // refund函数测试用例2：窗口关闭，众筹目标达到，投资人有余额，refund函数应该失败
+    it("window closed, target reach, funder has balance", 
+        async function() {
+            await fundMe.fund({value: ethers.parseEther("1")})
+            // make sure the window is closed
+            await helpers.time.increase(200)
+            await helpers.mine()  
+            await expect(fundMe.refund())
+                .to.be.revertedWith("Target is reached");
+        }
+    );
+
+
+    // refund函数测试用例3：窗口关闭，众筹目标未达到，投资人没有余额，refund函数应该失败
+    it("window closed, target not reach, funder does not has balance", 
+        async function() {
+            await fundMe.fund({value: ethers.parseEther("0.1")})
+            // make sure the window is closed
+            await helpers.time.increase(200)
+            await helpers.mine()  
+            await expect(fundMeSecondAccount.refund())
+                .to.be.revertedWith("there is no fund for you");
+        }
+    );
+
+    // refund函数测试用例4：窗口关闭，众筹目标未达到，投资人有余额，refund函数应该成功
+    it("window closed, target not reached, funder has balance", 
+        async function() {
+            // 使用fundMe对象调用fund函数，默认采用的是firstAccount地址，因为创建fundme对象的时候默认就是规定后续通过该对象调用函数都采用firstAccount地址
+            await fundMe.fund({value: ethers.parseEther("0.1")})
+            // make sure the window is closed
+            await helpers.time.increase(200)
+            await helpers.mine()  
+            await expect(fundMe.refund())
+                .to.emit(fundMe, "RefundByFunder") // 预期会有一个名为RefundByFunder事件
+                .withArgs(firstAccount, ethers.parseEther("0.1")) // 预期事件的入参是firstAccount和0.1个ETH
         }
     );
 })
