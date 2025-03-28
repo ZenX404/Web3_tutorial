@@ -39,6 +39,14 @@ contract FundMe {
     // 标记生产商是否已经完成提款
     bool public getFundSuccess = false;
 
+    // 生产商提款事件  当合约所有者调用getFund函数时，会触发该事件
+    // event是solidity中定义事件的语法，达成某个条件就可以发出该事件，有点类似于日志
+    // 入参是提款金额
+    event FundWithdrawByOwner(uint256 amount);
+    // 投资人退款事件  当投资人调用refund函数时，会触发该事件
+    // 入参是投资人地址和退款金额
+    event RefundByFunder(address funder, uint256 amount);
+
     // 智能合约的构造函数
     // 第一个参数是锁定期时长，第二个参数是预言机合约地址
     // 如果我们部署到sepolia测试网络，那么这里就直接传入真实的chainlink预言机提供的sepolia合约地址
@@ -128,13 +136,20 @@ contract FundMe {
 
         // 3、call: transfer ETH with data return value of function and bool   它在转账的同时，还可以去调用一些payable函数
         bool success;
-        (success, ) = payable(msg.sender).call{value: address(this).balance}(""); // 这里我们并没有调用额外的函数，所以只会返回交易是否成功的bool类型变量
+        // 记录提款总金额
+        uint256 balance = address(this).balance;
+        (success, ) = payable(msg.sender).call{value: balance}(""); // 这里我们并没有调用额外的函数，所以只会返回交易是否成功的bool类型变量
         require(success, "transfer tx failed");
         
         // 转移所有钱之后，需要把fundersToAmount数组中所有用户的值都清零
 
         // 标记生产商已经完成提款
         getFundSuccess = true;
+
+        // 触发生产商提款事件
+        // emit event
+        // emit关键字用于发送事件
+        emit FundWithdrawByOwner(balance);
     }
 
     // 在锁定期内，没有达到目标值，投资人在锁定期以后退款
@@ -145,11 +160,15 @@ contract FundMe {
         require(fundersToAmount[msg.sender] != 0, "there is no fund for you");
 
         bool success;
+        uint256 balance = fundersToAmount[msg.sender];
         // 把当时该用户投的钱退款
-        (success, ) = payable(msg.sender).call{value: fundersToAmount[msg.sender]}(""); // 这里我们并没有调用额外的函数，所以只会返回交易是否成功的bool类型变量
+        (success, ) = payable(msg.sender).call{value: balance}(""); // 这里我们并没有调用额外的函数，所以只会返回交易是否成功的bool类型变量
         require(success, "transfer tx failed");
         // 清空该用户的fund金额，防止重复退款bug
         fundersToAmount[msg.sender] = 0;
+
+        // 触发退款事件
+        emit RefundByFunder(msg.sender, balance);
     }
 
     // 修改用户投资余额
