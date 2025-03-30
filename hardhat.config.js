@@ -33,6 +33,9 @@ module.exports = {
   // hardhat默认网络就是hardhat本地网络，就是我们部署在本地时hardhat会构建的网络
   // defaultNetwork: hardhat   
   solidity: "0.8.28",
+  mocha: {
+    timeout: 300000
+  },
   // 手动设置合约要部署到的网络及地址
   networks: {
     // 我们可以找一些网络提供商来获取一些测试网络的地址，比如Alchemy, Infura, QuicNode等，有一些免费的水龙头也可以获取测试网络地址

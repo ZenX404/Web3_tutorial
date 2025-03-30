@@ -16,6 +16,11 @@ const {assert, expect} = require("chai");
 // helpers对象是hardhat-network-helpers插件提供的，用于测试中模拟各种场景，比如可以模拟本地测试网络环境中的时间流逝
 const helpers = require("@nomicfoundation/hardhat-network-helpers")
 
+const {devlopmentChains} = require("../../helper-hardhat-config")
+// 判断当前网络是否是本地测试网络，如果不是本地测试网络，则跳过单元测试
+!devlopmentChains.includes(network.name)
+? describe.skip
+:
 /**
  * describe函数在JavaScript的测试框架（如Mocha、Jest等）中用于定义一个测试套件。
  * 它的主要作用是将一组相关的测试用例组织在一起，以便更好地管理和阅读测试代码。
