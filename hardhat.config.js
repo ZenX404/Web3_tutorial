@@ -73,5 +73,8 @@ module.exports = {
     secondAccount: {
       default: 1
     },
+  },
+  gasReporter: {
+    enabled: true
   }
 };
