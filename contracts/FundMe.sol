@@ -196,6 +196,7 @@ contract FundMe {
     // 这里使用修改器来简化代码
     // 有点类似于spring中的AOP切面
     modifier windowClose() {
+        // 时间锁
         require(block.timestamp >= deploymentTimestamp + lockTime, "window is not close");
         // 表示应用该修改器的函数的逻辑。这样写相当于在应用该修改器最开始执行上面的require，然后再去执行自己的代码
         _;
