@@ -145,7 +145,7 @@ contract FundMe {
             success：call方法返回一个布尔值，表示转账是否成功。
          */
         uint256 balance = address(this).balance;
-        // 将当前合约（因为call函数是被当前智能合约执行的）中的自己转给msg.sender这个地址
+        // 将当前合约（因为call函数是被当前智能合约执行的）中的资金转给msg.sender这个地址
         (success, ) = payable(msg.sender).call{value: balance}(""); // 这里我们并没有调用额外的函数，所以只会返回交易是否成功的bool类型变量
         require(success, "transfer tx failed");
         
