@@ -137,7 +137,15 @@ contract FundMe {
         // 3、call: transfer ETH with data return value of function and bool   它在转账的同时，还可以去调用一些payable函数
         bool success;
         // 记录提款总金额
+        /**
+         * payable(msg.sender)：将调用合约函数的地址（msg.sender）转换为payable类型，以便可以接收以太币。
+            .call{value: balance}("")：使用call方法向msg.sender发送以太币。
+            value: balance：指定要发送的以太币数量，这里是合约的全部余额。
+            ("")：表示不调用任何函数，只进行转账操作。
+            success：call方法返回一个布尔值，表示转账是否成功。
+         */
         uint256 balance = address(this).balance;
+        // 将当前合约（因为call函数是被当前智能合约执行的）中的自己转给msg.sender这个地址
         (success, ) = payable(msg.sender).call{value: balance}(""); // 这里我们并没有调用额外的函数，所以只会返回交易是否成功的bool类型变量
         require(success, "transfer tx failed");
         
